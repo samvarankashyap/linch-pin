@@ -28,7 +28,7 @@ import os
 import shlex
 import tempfile
 import yaml
-from credentials import get_creds, get_default_creds
+from credentials.credentials import get_creds, get_default_creds
 
 def check_file_paths(module, *args):
     for file_path in args:
@@ -42,7 +42,7 @@ def check_file_paths(module, *args):
 def search_cred(module, cred_type, cred_store, cred_name):
     try:
         cred = get_creds(cred_type, cred_store, cred_name)
-        #cred = None
+        cred = None
         if cred == None:
             cred = get_default_creds(cred_type, cred_store, cred_name) 
         return cred
@@ -50,7 +50,7 @@ def search_cred(module, cred_type, cred_store, cred_name):
         #module.fail_json(msg="Auth driver failed to fetch cred_obj:ERROR:"+str(e)) 
         print e 
 
-"""
+
 def main():
     module = AnsibleModule(
     argument_spec={
@@ -70,9 +70,10 @@ def main():
 
 from ansible.module_utils.basic import *
 main()
-"""
-print search_cred("", "aws", "/root/cred_store", "testname")
-print search_cred("", "openstack", "/root/cred_store", "testname")
-print search_cred("", "gcloud", "/root/cred_store", "testname")
-print search_cred("", "example", "/root/cred_store", "testname")
+
+#debug statements
+#print search_cred("", "aws", "/root/linch-pin.work/credential_store", "testname")
+#print search_cred("", "openstack", "/root/linch-pin.work/credential_store", "testname")
+#print search_cred("", "gcloud", "/root/linch-pin.work/credential_store", "testname")
+#print search_cred("", "example", "/root/linch-pin.work/credential_store", "testname")
 
