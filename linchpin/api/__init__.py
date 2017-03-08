@@ -151,8 +151,6 @@ class LinchpinAPI:
     def lp_drop(self, config, pf):
         """ drop module of linchpin cli : find implementation in cli.py
         inventory_outputs paths"""
-        """
-        config.variable_manager.extra_vars = {}
         init_dir = os.getcwd()
         pfs = list_by_ext(init_dir, "PinFile")
         if len(pfs) == 0:
@@ -161,32 +159,77 @@ class LinchpinAPI:
             display("ERROR:002")
         pf = pfs[0]
         pf = parse_yaml(pf)
-        e_vars_grp = get_evars(pf)
-        for e_vars in e_vars_grp:
-            e_vars['linchpin_config'] = "/etc/linchpin/linchpin_config.yml"
-            topo_name = parse_yaml(e_vars["topology"])["topology_name"]
-            e_vars['topology_output_file'] = init_dir + "/outputs/" + \
-                                                        topo_name + ".output"
-            e_vars['inventory_outputs_path'] = init_dir + "/inventories"
-            e_vars['state'] = "absent"
-            invoke_linchpin(config, e_vars, "PROVISION", console=True)
-        """
+        e_vars = {}
+        e_vars['linchpin_config'] = self.get_config_path()
+        e_vars['outputfolder_path'] = self.context.workspace+"/outputs"
+        e_vars['inventory_outputs_path'] = self.context.workspace+"/inventories"
+        e_vars['keystore_path'] = self.context.workspace+"/keystore"
+        e_vars['state'] = "present"
+        # checks wether the targets are valid or not
+        if set(targets) == set(pf.keys()).intersection(targets) and len(targets) > 0:
+            for target in targets:
+                topology = pf[target]['topology']
+                topology_registry = pf.get("topology_registry", None)
+                e_vars['topology'] = self.find_topology(pf[target]["topology"],
+                                                        topology_registry)
+                if pf[target].has_key("layout"):
+                    e_vars['inventory_layout_file'] = self.context.workspace+"/layouts/"+pf[target]["layout"]
+                output = invoke_linchpin(self.base_path,
+                                         e_vars,
+                                         "PROVISION",
+                                         console=True)
+
+        elif len(targets) == 0:
+            for target in set(pf.keys()).difference(self.excludes):
+                topology = pf[target]['topology']
+                topology_registry = pf.get("topology_registry", None)
+                e_vars['topology'] = self.find_topology(pf[target]["topology"],
+                                                        topology_registry)
+                if pf[target].has_key("layout"):
+                    e_vars['inventory_layout_file'] = self.context.workspace+"/layouts/"+pf[target]["layout"]
+                output = invoke_linchpin(self.base_path, e_vars, "PROVISION",
+                                         console=True)
+        else:
+            raise  KeyError("One or more Invalid targets found")
 
     def lp_rise(self, pf, target):
         """ rise module of linchpin cli find implementation in cli.py"""
-        """
         init_dir = os.getcwd()
         pfs = list_by_ext(init_dir, "PinFile")
         pf = pfs[0]
         pf = parse_yaml(pf)
-        e_vars_grp = get_evars(pf)
-        for e_vars in e_vars_grp:
-            e_vars['linchpin_config'] = self.get_config_path()
-            e_vars['outputfolder_path'] = init_dir+"/outputs"
-            e_vars['inventory_outputs_path'] = init_dir+"/inventories"
-            e_vars['state'] = "present"
-            output = invoke_linchpin(config, e_vars, "PROVISION", console=True)
-        """
+        e_vars = {}
+        e_vars['linchpin_config'] = self.get_config_path()
+        e_vars['inventory_outputs_path'] = self.context.workspace + "/inventories"
+        e_vars['keystore_path'] = self.context.workspace+"/keystore"
+        e_vars['state'] = "absent"
+        # checks wether the targets are valid or not
+        if set(targets) == set(pf.keys()).intersection(targets) and len(targets) > 0:
+            for target in targets:
+                topology = pf[target]['topology']
+                topology_registry = pf.get("topology_registry", None)
+                e_vars['topology'] = self.find_topology(pf[target]["topology"],
+                                                        topology_registry)
+                output = invoke_linchpin(self.base_path,
+                                         e_vars,
+                                         "TEARDOWN",
+                                         console=True)
+
+        elif len(targets) == 0:
+            for target in set(pf.keys()).difference(self.excludes):
+                e_vars['topology'] = self.find_topology(pf[target]["topology"],
+                                                        pf)
+                topology = pf[target]["topology"].strip(".yml").strip(".yaml")
+                output_file = ( self.context.workspace + "/outputs/" + 
+                                topology + ".output" )
+                e_vars['topology_output_file'] = output_file
+                output = invoke_linchpin(self.base_path,
+                                         e_vars,
+                                         "TEARDOWN",
+                                         console=True)
+        else:
+            raise  KeyError("One or more Invalid targets found")
+
 
     def lp_validate(self, topo, layout=None, pf=None):
         """ validate module of linchpin cli :

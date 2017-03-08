@@ -45,6 +45,11 @@ class Config(object):
         self.env = Environment(loader=PackageLoader('linchpin', 'templates'))
         self.linchpinfile = self.env.get_template('PinFile.j2')
         self.lpconfig = self.env.get_template('linchpin_config.yml.j2')
+        self.INIT_DIR_LAYOUT = ['topologies', 'layouts', 'inventories','keystore']
+        self.TEMPLATES_PATH  = self.clipath+"/templates/" 
+        self.workspace = os.environ.get('LINCHPIN_WORKSPACE', False)
+        if not self.workspace:
+            self.workspace = os.environ.get('PWD')+"/"
 
 pass_config = click.make_pass_decorator(Config, ensure=True)
 
