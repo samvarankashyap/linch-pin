@@ -1,7 +1,7 @@
-<domain type='{{ definition[1]['driver'] | default('kvm') }}'>
-  <name>{{ definition[0] }}_{{ definition[1]['res_name'] }}_{{ definition[2] }}</name>
-  <memory unit='KiB'>{{ definition[1]['memory'] * 1024 | int }}</memory>
-  <vcpu placement='static'>{{ definition[1]['vcpus'] }}</vcpu>
+<domain type='{{ instance[1]['driver'] | default('kvm') }}'>
+  <name>linchpin_{{ instance[1]['res_name'] | default(instance[1]['name']) }}_{{ instance[2] }}</name>
+  <memory unit='KiB'>{{ instance[1]['memory'] * 1024 | int }}</memory>
+  <vcpu placement='static'>{{ instance[1]['vcpus'] }}</vcpu>
   <os>
     <type arch='{{ definition[1]['arch'] | default('x86_64') }}'>hvm</type>
     <boot dev='{{ definition[1]['boot_dev'] | default('hd') }}'/>
@@ -26,7 +26,7 @@
 {% endif %}
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2'/>
-      <source file='{{ definition[3] }}{{ definition[0] }}_{{ definition[1]['res_name'] }}_{{ definition[2] }}.{{ definition[4] }}'/>
+      <source file='{{ instance[3] }}{{ instance[1]['res_name'] | default(instance[1]['name']) }}_{{ instance[2] }}.{{ instance[4] }}'/>
       <target dev='vda' bus='virtio'/>
     </disk>
 {% for network in definition[1]['networks'] %}
