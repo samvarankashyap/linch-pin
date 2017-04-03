@@ -25,6 +25,10 @@
     output: "{{ v4output }}"
   when: schema_valid == false
 
+- name: "Generate UUID for the linchpin run "
+  shell: python -c "import uuid; print(uuid.uuid4())"
+  register: linchpin_runid
+
 - name: "set fact for saving topology_job_ids"
   set_fact:
     topology_job_ids: []
