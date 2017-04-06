@@ -1,0 +1,7 @@
+---
+- name: This is a hello-world example
+  hosts: localhost
+  tasks:
+  - name: debug
+    debug: 
+      msg: "{{ testvar | default('hello') }}"

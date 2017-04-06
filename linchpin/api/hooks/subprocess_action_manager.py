@@ -1,3 +1,5 @@
+import os
+import sys
 import subprocess
 
 class SubprocessActionManager:
@@ -12,6 +14,9 @@ class SubprocessActionManager:
         print("Load module of Subprocess Action Manager ")
         print("Action data "+str(self.action_data))
         print("Target data "+str(self.target_data))
+        # set os.environpath if exists
+        if self.action_data.has_key("path"):
+            os.environ["PATH"] += ":"+self.action_data["path"]
 
     def add_params(self, action):
         command = action
@@ -21,20 +26,10 @@ class SubprocessActionManager:
 
     def execute(self):
         print("Execute module of SubprocessAction Manager")
+        self.load()
         for action in self.action_data["actions"]:
             command = self.add_params(action)
-            print command
-            process = subprocess.call(command, shell=True)
-            #process.wait()
-            print process
             proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
             proc.wait()
             for line in proc.stdout:
-                print line
-            #popen = subprocess.Popen([command], stdout=subprocess.PIPE,bufsize=1)
-            #lines_iterator = iter(popen.stdout.readline, b"")
-            #while popen.poll() is None:
-            #    for line in lines_iterator:
-            #        nline = line.rstrip()
-            #        print(nline)
-            #        sys.stdout.flush()
+                print(line)

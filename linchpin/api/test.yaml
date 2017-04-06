@@ -1,0 +1,25 @@
+---
+openstack:
+  topology: ex_os_server.yml
+  layout: openshift-3node-cluster.yml
+gcloud:
+  topology: ex_os_server.yml
+  layout: openshift-3node-cluster.yml
+  hooks:
+    postup:              # sub-state is specified
+        - name: do_something
+          type: shell
+          actions:
+            - samvaran
+        - name: manipulate_inventory
+          type: shell
+          path: /tmp/shellscripts
+          actions:
+            - thisisshell.sh
+        - name: build_openshift_cluster
+          type: ansible
+          path: /tmp/
+          actions:
+            - playbook: test_playbook.yml
+              vars: test_vars.yaml
+              extra_vars: { "testvar": "world"}

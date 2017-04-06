@@ -1,0 +1,8 @@
+---
+- name: This is a hello-world example
+  hosts: nodes
+  gather_facts: false
+  tasks:
+  - name: debug
+    debug: 
+      msg: "{{ testvar | default('hello') }}"

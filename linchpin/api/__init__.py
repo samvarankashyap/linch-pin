@@ -19,19 +19,103 @@ from invoke_playbooks import invoke_linchpin
 from linchpin.cli.utils import search_path
 from utils import get_file, list_files, parse_yaml
 from github import GitHub
+#from hooks import run_hook
+from hooks import LinchpinHooks 
 
+"""
+Example of hook for a target
+hooks:
+  post-up::before_invgen:              # sub-state is specified
+      - name: do_something      
+        type: golang
+        action_manager: golang_manager
+        actions:
+          - do_this.go
+      - name: manipulate_inventory
+        type: ansible
+        path: my_ansible_stuff
+        actions:
+          - add_many_global_vars_so_i_dont_have_to_create_it_in_a_layout.yml
+            vars_file: amgvsidhtciial.yml
+      - name: check_ssh
+      - name: build_openshift_cluster
+        type: ansible
+        actions:
+          - setup.yml
+          - origin_from_source.yml
+          - openshift_ansible_from_source.yml
+          - deploy_aosi.yml
+          - run_e2e_tests.yml
+  pre-down:
+    - name: teardown_jenkins   # if no state it should take the default state into consideration
+      type: python
+      actions:
+        - TOPO="{{ topology }}" /usr/bin/python2.7 paws group -n my_test.yml
+"""
 
+class State(object):
+    VALID_STATES = ["preup", "predown", "postup", "postdown"]
+    VALID_SUB_STATES = ["preup", "predown", "postup", "postdown"]
+    def __init__(self, state, sub_state=None):
+        if self._validate_state(state):
+            self.state = state
+        else:
+            raise Exception("Invalid State mentioned")
+        if sub_state == None:
+            self.sub_state = sub_state
+        elif self._validate_sub_state(sub_state):
+            self.sub_state = sub_state
+        else:
+            raise Exception("Invalid SubState mentioned")
 
-class LinchpinAPI:
+    def _validate_state(self, state):
+        return state in State.VALID_STATES
+
+    def _validate_sub_state(self, sub_state):
+        """Should change logic to validate the substate as per state"""
+        return sub_state in State.VALID_SUB_STATES
+    def __repr__(self):
+        if self.sub_state:
+            return "%s::%s" % (self.state, self.sub_state)
+        else:
+            return self.state
+
+class LinchpinAPI(object):
 
     UPSTREAM_EXAMPLES_PATH = "linchpin/examples"
     def __init__(self, context):
         base_path = os.path.dirname(__file__).split("/")[0:-2]
+        print base_path
         self.base_path = "/{}/linchpin/".format('/'.join(base_path))
         self.excludes = set(["topology_upstream",
                              "layout_upstream",
                              "post_actions"])
         self.context = context
+        self._state = None
+        self._state_observers = []
+        self.hooks = LinchpinHooks(self)
+        self.current_target_data = {}
+
+    @property
+    def state(self):
+        """getter function for state property of the API obect."""
+        print("getter of state variable called")
+        return self._state
+
+    @state.setter
+    def state(self, value):
+        # call run_hooks after state is being set
+        print("setter of state variable called")
+        value = value.split("::")
+        state = value[0]
+        sub_state = value[-1] if len(value) > 1 else None
+        self._state = State(state, sub_state)
+        for callback in self._state_observers:
+            callback(self._state)
+
+    def bind_to_state(self, callback):
+        #print('bound to state')
+        self._state_observers.append(callback)
 
     def get_config_path(self):
         try:
@@ -218,9 +302,11 @@ class LinchpinAPI:
             link = link[0]["download_url"]
             return requests.get(link).text
 
-
-    def lp_rise(self, pf, targets):
+    def lp_rise(self, pf, targets=[]):
+        self.pf = parse_yaml(pf)
         pf = parse_yaml(pf)
+        #raise NotImplementedError("lp rise is not implemented")
+
         e_vars = {}
         e_vars['linchpin_config'] = self.get_config_path()
         e_vars['outputfolder_path'] = self.context.workspace+"/outputs"
@@ -232,25 +318,44 @@ class LinchpinAPI:
             for target in targets:
                 topology = pf[target]['topology']
                 topology_registry = pf.get("topology_registry", None)
-                e_vars['topology'] = self.find_topology(pf[target]["topology"],
-                                                        topology_registry)
+                #e_vars['topology'] = self.find_topology(pf[target]["topology"],
+                #                                        topology_registry)
                 if pf[target].has_key("layout"):
                     e_vars['inventory_layout_file'] = self.context.workspace+"/layouts/"+pf[target]["layout"]
-                output = invoke_linchpin(self.base_path,
-                                         e_vars,
-                                         "PROVISION",
-                                         console=True)
+                # runs pre hooks by changing state 
+                self.current_target_data = pf[target]
+                self.current_target_data["extra_vars"] = e_vars
+                self.state= State("preup")
 
+                # invoke linchpin
+                #output = invoke_linchpin(self.base_path,
+                #                         e_vars,
+                #                         "PROVISION",
+                #                         console=True)
+                # runs post hooks by changing state
+                self.current_target_data = pf[target]
+                self.current_target_data["extra_vars"] = e_vars
+                self.state = State("postup")
         elif len(targets) == 0:
             for target in set(pf.keys()).difference(self.excludes):
                 topology = pf[target]['topology']
                 topology_registry = pf.get("topology_registry", None)
-                e_vars['topology'] = self.find_topology(pf[target]["topology"],
-                                                        topology_registry)
+                #e_vars['topology'] = self.find_topology(pf[target]["topology"],
+                #                                        topology_registry)
                 if pf[target].has_key("layout"):
                     e_vars['inventory_layout_file'] = self.context.workspace+"/layouts/"+pf[target]["layout"]
-                output = invoke_linchpin(self.base_path, e_vars, "PROVISION",
-                                         console=True)
+                # runs pre hooks
+                self.current_target_data = pf[target]
+                self.current_target_data["extra_vars"] = e_vars
+                self.state= "preup"
+                # invoke linchpin 
+                #output = invoke_linchpin(self.base_path, e_vars, "PROVISION",
+                #                         console=True)
+
+                # runs post hooks
+                self.current_target_data = pf[target]
+                self.current_target_data["extra_vars"] = e_vars
+                self.state= "postup"
         else:
             raise  KeyError("One or more Invalid targets found")
 
@@ -273,10 +378,12 @@ class LinchpinAPI:
                                 topology.strip(".yaml").strip(".yml") +
                                 ".output")
                 e_vars['topology_output_file'] = output_file
+                # runs pre hooks
                 output = invoke_linchpin(self.base_path,
                                          e_vars,
                                          "TEARDOWN",
                                          console=True)
+                # runs post hooks
 
         elif len(targets) == 0:
             for target in set(pf.keys()).difference(self.excludes):

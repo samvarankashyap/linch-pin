@@ -1,6 +1,7 @@
 #proxy pattern implementation
-
+import pprint
 from action_managers import ACTION_MANAGERS
+
 
 class ActionManager:
     def __init__(self, name, *args, **kwargs):
@@ -14,6 +15,56 @@ class ActionManager:
         if action_class == None:
             raise Exception("Action Class %s not found " % (class_name))
         return action_class
+
+class LinchpinHooks(object):
+    def __init__(self, api):
+        self.api = api
+        self.api.bind_to_state(self.run_hooks)
+
+    def run_hooks(self, state, is_global=False):
+        print("State change triggered in linchpin api")
+        print("Observed State in LinchpinHooks :: "+str(state))
+        print("Observer target_data passed")
+        print(self.api.current_target_data)
+        hooks_data = self.api.current_target_data.get("hooks", None)
+        if hooks_data == None:
+            print("No hooks found for current target")
+            return
+        state_data = hooks_data.get(str(state), None)
+        if state_data == None:
+            print(str(state)+" state hook not found in PinFile")
+            return
+        print("current state data:: ", state_data)
+        self.run_actions(state_data, target_data)
+        for action in state_data:
+            print(action)
+
+    def run_actions(self, actions, target_data, is_global=False):
+        """
+        arguments
+        actions: regardless of state the actions is list of actions performed .
+        A sample action in yaml looks as follows :
+        '''
+        name: build_openshift_cluster
+        type: ansible
+        actions:
+          - setup.yml
+          - origin_from_source.yml
+          - openshift_ansible_from_source.yml
+          - deploy_aosi.yml
+          - run_e2e_tests.yml
+        '''
+        target_data: data specific to target , which can be dict of topology , layout, outputs , inventory.
+        is_global: scope of the hook.
+        """
+        if is_global:
+            raise NotImplementedError("Run Hooks is not implemented \
+                                       for global scoped hooks")
+        else:
+            for action in actions:
+                action_type = action["type"]
+                action_obj = ActionManager(action_type, action, target_data)
+                action_obj.execute()
 
 """
 p = ActionManager("imp1")
@@ -85,14 +136,31 @@ def run_actions(actions , target_data, is_global=False):
         for action in actions:
             action_type = action["type"]
             action_obj = ActionManager(action_type, action, target_data)
-            action_obj.load()
             action_obj.execute()
 
 # testing runhooks
 actions = [
-        {"name": "somename", "type":"shell", "path": "/tmp/", "actions":['samvaran']},
-        {"name": "someothername", "type":"ansible", "path": "/tmp/", "actions":['test.yml']}
-        ]
-target_data = {"topology":"/tmp/sometopology.yaml", "layout":"/tmp/somelayout.yml"}
+        {"name": "somename", "type":"shell", "actions":['samvaran']},
+        {"name": "somename", "type":"shell", "path": "/tmp/shellscripts", "actions":['thisisshell.sh']},
+        {
+             "name": "someothername",
+             "type":"ansible",
+             "path": "/tmp/",
+             "actions":[
+                 {
+                     "playbook":'test.yml',
+                     "vars":"test_vars.yaml",
+                     "extra_vars": {
+                         "testvar":"world"
+                         }
+                 }
+             ],
+        }
+]
+target_data = {
+                 "topology":"/tmp/sometopology.yaml",
+                 "layout":"/tmp/somelayout.yml",
+                 "inventory":"/home/srallaba/workspace/venvs/pr189/linchtest/inventories/example_topo.inventory",
+              }
 
-run_actions(actions, target_data)
+#run_actions(actions, target_data)
