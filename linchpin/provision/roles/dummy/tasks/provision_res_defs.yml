@@ -2,7 +2,7 @@
 - name: "Provision dummy resources by looping on count"
   dummy:
     state: present
-    name: "{{ res_def['res_name'] | default(res_def['name']) }}_{{runid}}"
+    name: "{{ res_def['res_name'] | default(res_def['name']) }}_{{ runid }}"
     count: "{{ res_def['count'] | default(1) }}"
   register: outputitem
   when: res_def['type']=="dummy_node"
@@ -21,6 +21,7 @@
     res_def_out:
       output: "{{ outputitem }}"
       resource_group_name: "{{ res_grp_name }}"
+      runid: "{{ runid }}"
 
 - name: Set fact for outputs inside res_def
   set_fact:
