@@ -299,6 +299,7 @@ class LinchpinAPI(object):
         for target in targets:
             self.set_evar('topology', self.find_topology(
                           pf[target]["topology"]))
+            self.set_evar('target_name', target)
 
             if 'layout' in pf[target]:
                 self.set_evar('layout_file',
