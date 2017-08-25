@@ -10,7 +10,7 @@ class DummyInventory(InventoryFilter):
     def get_hostnames(self, topo):
         hostnames = []
         for group in topo['dummy_res']:
-            for host in group['hosts']:
+            for host in group['output']['hosts']:
                 hostnames.append(host)
         return hostnames
 
