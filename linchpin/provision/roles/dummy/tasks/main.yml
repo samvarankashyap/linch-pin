@@ -4,6 +4,14 @@
   debug:
     msg: "Currently provisioning the resources under list dummy_res_grps {{ dummy_res_grps }}"
 
+- name: "Create a db entry"
+  hashlite:
+    file_path: "/tmp/testdb.json"
+    operation: "listcreate"
+    key: "{{ target_name }}_{{ runid }}"
+    subkey: "dummy_res"
+  when: state == "present"
+
 - name: "declaring output vars"
   set_fact:
     topology_outputs_dummy: []
@@ -14,10 +22,23 @@
     - "{{ dummy_res_grps }}"
   when: state == "present"
 
-- name: "Initiating Teardown of dummy resource group"
-  include: teardown_resource_group.yml res_grp={{ item.0 }} topo_output_file={{ item.1 }}
-  with_nested:
-    - "{{ dummy_res_grps }}"
-    - ["{{ resources_file | default( default_resources_path+'/'+
-    outputs.topology_name.replace(' ', '_').lower()+'.output' ) }}"]
+- name: "Get latest run id with target "
+  hashlite:
+    file_path: "/tmp/testdb.json"
+    operation: getfirst
+    key: "{{ target_name }}_*"
+    subkey: "dummy_res"
+  register: dummy_res
   when: state == "absent"
+
+- name: setfact
+  set_fact:
+    dummy_resources:
+      resource_definitions: "{{ dummy_res['output'] }}"
+  when: state == "absent"
+
+- name: "Initiating Teardown of dummy resource group"
+  include: teardown_resource_group.yml res_grp={{ item }}
+  with_items:
+    - "{{ dummy_resources }}"
+  when: state== "absent"

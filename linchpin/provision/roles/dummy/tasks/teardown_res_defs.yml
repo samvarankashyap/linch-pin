@@ -1,5 +1,9 @@
 ---
-- name: "Provision dummy resources by looping on count"
+- name: debug
+  debug:
+    msg: "{{ res_def }}"
+
+- name: "Teardown dummy resources by looping on count"
   dummy:
     state: absent
     name: "{{ res_def['res_name'] | default(res_def['name']) }}"

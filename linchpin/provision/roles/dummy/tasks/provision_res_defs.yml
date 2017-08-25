@@ -2,10 +2,51 @@
 - name: "Provision dummy resources by looping on count"
   dummy:
     state: present
-    name: "{{ res_def['res_name'] | default(res_def['name']) }}"
+    name: "{{ res_def['res_name'] | default(res_def['name']) }}_{{runid}}"
     count: "{{ res_def['count'] | default(1) }}"
   register: outputitem
   when: res_def['type']=="dummy_node"
+  ignore_errors: true
+
+#- name: "Store output to db"
+  #hashlite:
+  #    file_path: "/tmp/testdb.json"
+  #  operation: "listpush"
+  #  key: "{{ runid }}"
+  #  subkey: "dummy_res"
+  #  value: "{{ outputitem | to_json }}"
+  #  datatype: "json"
+- name: "Set fact for res_def output"
+  set_fact:
+    res_def_out:
+      output: "{{ outputitem }}"
+      resource_group_name: "{{ res_grp_name }}"
+
+- name: Set fact for outputs inside res_def
+  set_fact:
+    ano: "{{ res_def | combine(res_def_out) }}"
+
+- name: "debug for ano"
+  debug:
+    msg: "{{ ano }}"
+
+- name: "Create entry for resource group parameters"
+  hashlite:
+    file_path: "/tmp/testdb.json"
+    operation: "listpush"
+    key: "{{ target_name }}_{{ runid }}"
+    subkey: "dummy_res"
+    value: "{{ ano | to_json }}"
+    datatype: "json"
+
+#- name: "Create entry for resource group outputs"
+#  hashlite:
+#    file_path: "/tmp/testdb.json"
+#    operation: "listpush"
+#    key: "{{ runid }}"
+#    subkey: "{{ res_grp_name }}_outputs"
+#    value: "{{ outputitem | to_json }}"
+#    datatype: "json"
 
 - name: "set tmp var"
   set_fact:
