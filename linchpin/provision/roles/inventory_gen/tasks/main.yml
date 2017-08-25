@@ -5,21 +5,35 @@
 #    msg: "{{ layout_file }}"
 #  when: state == "present"
 
-- include_vars: "{{ resources_file | default( default_resources_path+'/'+
-outputs.topology_name.replace(' ', '_').lower()+'.output' ) }}"
+#- include_vars: "{{ resources_file | default( default_resources_path+'/'+
+#outputs.topology_name.replace(' ', '_').lower()+'.output' ) }}"
 
-- name: "Updating topology_outputs"
+#- name: "Updating topology_outputs"
+#  set_fact:
+#    topology_outputs:
+#      dummy_res: "{{ dummy_res }}"
+#      os_server_res: "{{ os_server_res }}"
+#      aws_ec2_res: "{{ aws_ec2_res }}"
+#      gcloud_gce_res: "{{ gcloud_gce_res }}"
+#      duffy_res: "{{ duffy_res }}"
+#      beaker_res: "{{ beaker_res }}"
+#      libvirt_res: "{{ libvirt_res }}"
+#  when: state == "present" and inventory_layout is defined
+
+- name: "Fetch outputs from db"
+  hashlite:
+    file_path: "/tmp/testdb.json"
+    operation: "get"
+    key: "{{ target_name }}_{{ runid }}"
+  register: db_out
+
+- name: "register topology_outputs"
   set_fact:
-    topology_outputs:
-      dummy_res: "{{ dummy_res }}"
-      os_server_res: "{{ os_server_res }}"
-      aws_ec2_res: "{{ aws_ec2_res }}"
-      gcloud_gce_res: "{{ gcloud_gce_res }}"
-      duffy_res: "{{ duffy_res }}"
-      beaker_res: "{{ beaker_res }}"
-      libvirt_res: "{{ libvirt_res }}"
-  when: state == "present" and inventory_layout is defined
+    topology_outputs: "{{ db_out['output'] }}"
 
+- name: "hello"
+  debug:
+    msg: "{{ db_out['output'] }}"
 
 # parse inventory generation files here : can be overridden by extravar layout_file currently defaulted to openshift-3node-cluster.yml
 - name: "Parse inventory layout as a ordered dict"
