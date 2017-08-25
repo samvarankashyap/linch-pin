@@ -12,6 +12,54 @@
 #  debug:
 #    var: from_api
 
+- name: "TARGET NAME DEBUG"
+  debug:
+    msg: "{{ target_name }}"
+
+- name: "generate runid"
+  shell: "python -c 'from uuid import getnode as get_mac; print get_mac()'"
+  register: macid_output
+  when: state == 'present'
+
+- name: "generate timestamp"
+  shell: "python -c 'import time; print(int(time.time()))'"
+  register: timestamp_output
+  when: state == 'present'
+
+
+- name: "set fact for runid"
+  set_fact:
+    runid: "{{ runid | default(macid_output['stdout']+'_'+timestamp_output['stdout']) }}"
+  when: state == 'present'
+
+- name: "Create a db entry"
+  hashlite:
+    file_path: "/tmp/testdb.json"
+    operation: "dictcreate"
+    key: "{{ target_name }}_{{ runid }}"
+  when: state == 'present'
+
+- name: "Create a entries for topology name"
+  hashlite:
+    file_path: "/tmp/testdb.json"
+    operation: "set"
+    key: "{{ target_name }}_{{ runid }}"
+    subkey: "topology_name"
+    value: "{{ topology_name }}"
+  when: state == 'present'
+
+- name: "create lists for all resource types"
+  hashlite:
+    file_path: "/tmp/testdb.json"
+    operation: listcreate
+    key: "{{ item[1] }}"
+    subkey: "{{ item[0] }}"
+    force: true
+  with_nested:
+    - ["aws_ec2_res", "os_server_res", "gcloud_gce_res", "rax_server_res", "libvirt_res", "duffy_res", "dummy_res"]
+    - ["{{ target_name }}_{{ runid }}"]
+  when: state == 'present'
+
 - name: "load ini evars from linchpin.conf"
   include: load_evars_from_ini.yml
   when: from_api is not defined
