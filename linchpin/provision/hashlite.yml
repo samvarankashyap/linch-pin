@@ -1,0 +1,40 @@
+---
+#input: linchpin_config, output, layout
+#output: output dump to file
+- name: "Hashlite db testing"
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: "Create a db file"
+      hashlite:
+        file_path: "/tmp/testdb.json"
+        operation: "get"
+    - name: "Set key in the db"
+      hashlite:
+        file_path: "/tmp/testdb.json"
+        operation: "set"
+        key: "testkey"
+        value: "testvalue"
+    - name: "Set key with a list"
+      hashlite:
+        file_path: "/tmp/testdb.json"
+        operation: "listcreate"
+        key: "testlist"
+    - name: "Set key runid "
+      hashlite:
+        file_path: "/tmp/testdb.json"
+        operation: "dictcreate"
+        key: "runid_8568"
+    - name: "test set with subkey"
+      hashlite:
+        file_path: "/tmp/testdb.json"
+        operation: "set"
+        key: "runid_8568"
+        subkey: "testsubkey"
+        value: "testsubvalue"
+    - name: "test lcreate with subkey"
+      hashlite:
+        file_path: "/tmp/testdb.json"
+        operation: "listcreate"
+        key: "runid_8568"
+        subkey: "testsubkeylist"
