@@ -3,6 +3,8 @@
 import os
 import sys
 import click
+import json
+import pprint
 
 from linchpin.cli import LinchpinCli
 from linchpin.exceptions import LinchpinError
@@ -15,7 +17,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 class LinchpinAliases(click.Group):
 
-    lp_commands = ['init', 'up', 'destroy', 'fetch']
+    lp_commands = ['init', 'up', 'destroy', 'fetch', 'runlist', 'show']
     lp_aliases = {
         'rise': 'up',
         'drop': 'destroy',
@@ -148,6 +150,59 @@ def init(ctx):
         ctx.log_state(e)
         sys.exit(1)
 
+
+@runcli.command('history', short_help='Shows the runlist of linchpin')
+@pass_context
+def history(ctx):
+    """
+    Initializes a linchpin project, which generates an example PinFile, and
+    creates the necessary directory structure for topologies and layouts.
+    :param ctx: Context object defined by the click.make_pass_decorator method
+    """
+    try:
+        fpath = ctx.get_cfg("database").get("path")
+        db = json.loads(open(fpath, "r").read())
+        print("==============")
+        print("RUNID")
+        print("==============")
+        for key in db.keys():
+            print(key)
+    except Exception as e:
+        print(e)
+        print("DB file not found")
+    #pf_w_path = _get_pinfile_path(exists=False)
+    #try:
+    #    # lpcli.lp_init(pf_w_path, targets) # TODO implement targets option
+    #    lpcli.lp_init(pf_w_path)
+    #except LinchpinError as e:
+    #    ctx.log_state(e)
+    #    sys.exit(1)
+
+
+@runcli.command()
+@click.argument('runid', metavar='RUNID', required=True,
+                nargs=1)
+@pass_context
+def show(ctx, runid):
+    """
+    """
+    try:
+        fpath = ctx.get_cfg("database").get("path")
+        db = json.loads(open(fpath, "r").read())
+        print("==============")
+        print("Resources")
+        print("==============")
+        output = db.get(runid, False)
+        if output == False:
+            print("RUNID not found")
+        else:
+            pprint.pprint(output)
+    except Exception as e:
+        print(e)
+        print("DB file not found")
+    except LinchpinError as e:
+        ctx.log_state(e)
+        sys.exit(1)
 
 @runcli.command()
 @click.argument('targets', metavar='TARGETS', required=False,
