@@ -50,7 +50,7 @@
     msg: "{{ vm_xml_dump | get_libvirt_files }}"
 
 - name: "Delete associated image files"
-  file:
+  file2:
     state: absent
     path: "{{ item }}"
   with_items: "{{ vm_xml_dump | get_libvirt_files }}"

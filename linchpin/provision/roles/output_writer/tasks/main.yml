@@ -23,7 +23,7 @@
   when: not async
 
 - name: "Create output directories"
-  file:
+  file2:
     state: directory
     path: "{{ item }}"
   with_items:
