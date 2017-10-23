@@ -339,6 +339,7 @@
     - ["{{ res_def['uri'] }}"]
   loop_control:
     loop_var: net_item
+  ignore_errors: yes
 
 - name: "mac_and_ip | extract mac address"
   shell: >
