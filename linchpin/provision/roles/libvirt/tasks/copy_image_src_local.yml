@@ -9,7 +9,7 @@
 
 
 - name: "delegate_to localhost :ensure local_image_path directory exists"
-  file:
+  file2:
     path: "{{ local_image_path }}"
     state: directory
     mode: 0755

@@ -43,7 +43,7 @@
   ignore_errors: yes
 
 - name: "Delete associated image files"
-  file:
+  file2:
     state: absent
     path: "{{ inst }}"
   with_items: "{{ vm_xml_dump | get_libvirt_files }}"
