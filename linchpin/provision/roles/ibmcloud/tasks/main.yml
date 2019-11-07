@@ -1,0 +1,17 @@
+---
+- name: "declaring output vars"
+  set_fact:
+    topology_outputs_ibm_vs: []
+
+- name: "Initiating Provisioning of ibmcloud resource group"
+  include: provision_resource_group.yml res_grp={{ item }}
+  with_items:
+    - "{{ resources }}"
+  when: state == "present"
+  check_mode: "{{ _check_mode }}"
+
+- name: "Initiating Teardown of ibmcloud resource group"
+  include: teardown_resource_group.yml res_grp={{ item }}
+  with_items:
+    - "{{ resources }}"
+  when: state == "absent"

@@ -1,0 +1,82 @@
+---
+- name: auth_var debug
+  debug:
+    msg: "{{ auth_var | default('nothing here')  }}"
+
+- name: lets see whats in res_def
+  debug:
+    msg: "{{ res_def }}"
+
+- name: "Provisioning AWS_EC2 Resource when not async"
+  sl_vm:
+    auth: "{{ auth_var | omit_filter(omit) }}" 
+    cpus: "{{ res_def['cpus'] }}" 
+    datacenter: "{{ res_def['datacenter'] | default(omit) }}"
+    dedicated: "{{ res_def['dedicated'] | default(omit) }}"
+    disks: "{{ res_def['disks'] | default(omit) }}"
+    domain: "{{ res_def['domain'] | default(omit) }}"
+    hostname: "{{ res_def['hostname'] | default(omit) }}"
+    hourly: "{{ res_def['hourly'] | default(omit) }}"
+    image_id: "{{ res_def['image_id'] | default(omit) }}"
+    instance_id: "{{ res_def['instance_id'] | default(omit) }}"
+    local_disk: "{{ res_def['local_disk'] | default(omit) }}"
+    memory: "{{ res_def['memory'] | default(omit) }}"
+    nic_speed: "{{ res_def['nic_speed'] | default(omit) }}"
+    os_code: "{{ res_def['os_code'] | default(omit) }}"
+    post_uri: "{{ res_def['post_uri'] | default(omit) }}"
+    private: "{{ res_def['private'] | default(omit) }}"
+    private_vlan: "{{ res_def['private_vlan'] | default(omit) }}"
+    public_vlan: "{{ res_def['public_vlan'] | default(omit) }}"
+    ssh_keys: "{{ res_def['ssh_keys'] | default(omit) }}"
+    tags: "{{ res_def['tags'] | default(omit) }}"
+    state: "{{ state }}"
+    wait: yes
+    wait_time: "{{ timeout | default(900) }}"
+  register: res_def_output
+  when: not _async
+  #  no_log: "{{ not debug_mode }}"
+
+- name: Lets see what we got for output
+  debug:
+    msg: "{{ res_def_output }}"
+
+- name: "Append outputitem to topology_outputs"
+  set_fact:
+    topology_outputs_ibm_vs: "{{ topology_outputs_ibm_vs + [res_def_output] }}"
+  when: not _async
+
+
+#- name: "Async:: Provisioning AWS_EC2 Resource"
+#  ec2:
+#    aws_access_key: "{{ auth_var['aws_access_key_id'] | default(omit) }}"
+#    aws_secret_key: "{{  auth_var['aws_secret_access_key'] | default(omit) }}"
+#    key_name: "{{ res_def['keypair'] | default(omit) }}"
+#    instance_type: "{{ res_def['flavor'] }}"
+#    image: "{{ res_def['image'] }}"
+#    region: "{{ res_def['region'] }}"
+#    wait: yes
+#    wait_timeout: "{{ res_def['wait_timeout'] | default(600) }}"
+#    group: "{{ res_def['security_group']| default('default') }}"
+#    count: "{{ res_def['count'] }}"
+#    vpc_subnet_id: "{{ res_def['vpc_subnet_id']| default(omit) }}"
+#    assign_public_ip: "{{ res_def['assign_public_ip'] | default(omit) }}"
+#    instance_tags: "{{ res_grp_vars | selectattr('resource_group_name', 'match', '^' + res_grp_name + '$') | first }}"
+#  async: "{{ async_timeout }}"
+#  poll: 0
+#  register: res_def_output
+#  when: _async
+#  no_log: "{{ not debug_mode }}"
+
+#- name: "Async:: Append outputitem to topology_outputs"
+#    set_fact:
+#    async_outputs_aws_ec2: "{{ async_outputs_aws_ec2 + [res_def_output] }}"
+#  when: _async
+
+- name: "Add type to resource"
+  set_fact:
+    topology_outputs_ibm_vs: "{{ topology_outputs_ibm_vs | add_res_data(lookup('vars', 'role_name'), res_def['role']) }}"
+    
+#- name: "Async:: Add type to resource"
+#  set_fact:
+#    async_outputs_aws_ec2: "{{ async_outputs_aws_ec2 | add_res_data(lookup('vars', 'role_name'), res_def['role']) }}"
+#  when: _async

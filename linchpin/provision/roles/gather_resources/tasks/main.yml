@@ -62,6 +62,11 @@
     topology_outputs: "{{ topology_outputs_aws_ec2 }}"
   when: topology_outputs_aws_ec2 is defined
 
+- name: "Add ibm_vs res"
+  set_fact:
+    topology_outputs: "{{ topology_outputs_ibm_vs }}"
+  when: topology_outputs_ibm_vs is defined
+
 # we have to append here, otherwise we'll nullify the previous aws resources
 - name: "Add aws_s3_res"
   set_fact:

@@ -1,0 +1,32 @@
+---
+- name: auth_var debug
+  debug:
+    msg: "{{ auth_var | default('nothing here')  }}"
+
+#- name: debug message for tp_out
+#  debug:
+#    msg: "{{ topo_output_resources | filter_ibm_vs_ids }}"
+#  when: state == 'absent'
+
+  #- fail:
+  #  msg: "This fails hahaha "
+
+- name: lets see whats in res_def
+  debug:
+    msg: "{{ res_def }}"
+
+- name: "Teardown ibm_vs  when not async"
+  sl_vm:
+    auth: "{{ auth_var | omit_filter(omit) }}" 
+    tags: "{{ res_def['tags'] }}"
+    wait: yes
+    wait_time: "{{ timeout | default(900) }}"
+    state: absent
+  register: res_def_output
+  when: not _async
+  #  no_log: "{{ not debug_mode }}"
+
+- name: Lets see what we got for output
+  debug:
+    msg: "{{ res_def_output }}"
+

@@ -1,0 +1,37 @@
+{
+    "res_defs": {
+        "type": "list",
+        "schema": {
+            "anyof": [{
+                "type": "dict",
+                "schema": {
+                    "role": {
+                        "type": "string",
+                        "required": true,
+                        "allowed": ["ibm_vs"]
+                    },
+                    "cpus": { "type": "integer", "required": true },
+                    "datacenter": { "type": "string", "required": true },
+                    "dedicated": { "type": "boolean", "required": false },
+                    "disks": { "type": ["list"], "required": false },
+                    "domain": { "type": "string", "required": false },
+                    "hostname": { "type": "string", "required": true },
+                    "hourly": { "type": "boolean", "required": false },
+                    "image_id": { "type": "string", "required": false },
+                    "instance_id": { "type": "string", "required": false },
+                    "local_disk": { "type": "boolean", "required": false },
+                    "memory": { "type": "integer", "required": true },
+                    "nic_speed": { "type": "integer", "required": false },
+                    "os_code": { "type": "string", "required": false },
+                    "post_uri": { "type": "string", "required": false },
+                    "private": { "type": "boolean", "required": false },
+                    "private_vlan": { "type": "string", "required": false },
+                    "public_vlan": { "type": "string", "required": false },
+                    "ssh_keys": { "type": "string", "required": false },
+                    "tags": { "type": ["list", "string"], "required": false }
+                }
+            }
+	    ]
+        }
+    }
+}
