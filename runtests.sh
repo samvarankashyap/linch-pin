@@ -11,16 +11,28 @@ echo $VERSION_ID
 if [ $VERSION_ID = "8" ]
 then
     echo "This is centos8";
+    export LC_ALL=C.UTF-8;
+    export LANG=C.UTF-8;
     yum install -y python3 epel-release which git;
     yum install -y python3-pip python3-flake8 python3-devel gcc;
+    yum install -y python3-pytest;
+    mkdir -p /github/home/.ssh/;
 elif [ $VERSION_ID = "7" ]
 then
     echo "This is centos7";
+    export LC_ALL=en_CA.utf8;
+    export LANG=en_CA.utf8;
     yum install -y python3 epel-release which git;
     yum install -y python-pip python3-pip python3-devel gcc;
     pip install flake8;
+    yum install -y pytest;
+    mkdir -p /github/home/.ssh/;
 else
-    echo "This is fedora"
-    dnf install -y python3 git;
-    dnf install -y python3-pip python3-flake8 python3-devel gcc which;
+    echo "This is fedora";
+    export LC_ALL=C.UTF-8;
+    export LANG=C.UTF-8;
+    dnf install -y --nogpgcheck python3 git python3-pip python3-flake8 python3-devel gcc which;
+    dnf install -y --nogpgcheck python3-pytest;
+    mkdir -p /github/home/.ssh/;
+
 fi
