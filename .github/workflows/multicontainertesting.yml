@@ -1,0 +1,45 @@
+name: "multicontainer testing: Testing container matrix"
+
+on: [push]
+
+jobs:
+  build:
+    name: Build on ${{matrix.container }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      matrix:
+        container: ['centos:8', 'centos:7', 'fedora:30', 'fedora:31', 'fedora:32' ]
+    steps:
+    - uses: actions/checkout@v2
+    - run: cat /etc/os-release
+    - name: running a shell script file
+      run: |
+        chmod +x ./runtests.sh
+        ./runtests.sh
+    - name: Install dependencies
+      run: |
+        pip3 install -r requirements.txt
+        pip3 install .[test]
+        pip3 install zipp>=0.5
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics;
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        python3 setup.py test
+    - name: RUN mock tests
+      run: |
+        chmod +x ./runmocktests.sh
+        ./runmocktests.sh    
+
+#jobs:
+#  build:
+
+#    runs-on: ubuntu-latest
+#    container: centos:7
+
+#    steps:
+#    - uses: actions/checkout@v1
+#    - name: Build
+#      run: pip install -r requirements.txt
