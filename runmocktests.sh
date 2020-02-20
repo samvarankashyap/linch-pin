@@ -19,3 +19,7 @@ echo "RUNNING AWS MOCK TESTS";
 linchpin init aws;
 cd aws;
 linchpin -vvvv up;
+cd ..;
+linchpin init openstack;
+cd openstack;
+linchpin -vvvv up;
