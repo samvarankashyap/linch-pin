@@ -20,8 +20,8 @@ then
 elif [ $VERSION_ID = "7" ]
 then
     echo "This is centos7";
-    export LC_ALL=en_CA.utf8;
-    export LANG=en_CA.utf8;
+    export LC_ALL="en_US";
+    export LANG="en_US";
     yum install -y python3 epel-release which git;
     yum install -y python-pip python3-pip python3-devel gcc;
     pip install flake8;
@@ -36,3 +36,4 @@ else
     mkdir -p /github/home/.ssh/;
 
 fi
+
