@@ -6,7 +6,6 @@ dist: bionic
 language: python
 
 python:
-  - "2.7"
   - "3.7"
 
 cache: pip
@@ -20,5 +19,9 @@ install:
 script:
   - flake8 --exclude=\.eggs,tests,docs,config/Dockerfiles --ignore=E124,E303,W504 --max-line-length 80 .
   - $(which python) setup.py test
-#  - $(which python) $(which nosetests) -s linchpin/tests/*
-  - radon cc -s --min C linchpin
+  - egrep -c '(vmx|svm)' /proc/cpuinfo
+  - sudo apt install cpu-checker
+  - sudo kvm-ok
+  - sudo apt update
+  - sudo apt install qemu qemu-kvm libvirt-bin  bridge-utils  virt-manager
+  - sudo service libvirtd start
