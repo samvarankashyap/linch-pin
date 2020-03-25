@@ -1,0 +1,21 @@
+name: "Lint testing: Testing container matrix [fedora31]"
+
+on:
+  push:
+    branches:
+      - 'staging'
+
+jobs:
+  build:
+    name: Build on ${{matrix.container }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      matrix:
+        container: ['fedora:31']
+    steps:
+    - uses: actions/checkout@v2
+    - name: running a shell script file
+      run: |
+        ls;
+        pwd;
