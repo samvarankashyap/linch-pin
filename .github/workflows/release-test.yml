@@ -7,18 +7,25 @@ on:
 
 jobs:
   build:
-    name: Build on ${{matrix.container }}
+    name: release tests
     runs-on: ubuntu-latest
-    container: ${{ matrix.container }}
-    strategy:
-      matrix:
-        container: ['fedora:31']
+    #    container: ${{ matrix.container }}
+    #    strategy#:
+    #      matrix:
+    #        container: ['fedora:31']
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 3
+    - uses: salsify/action-detect-and-tag-new-version@v1
+      with:
+        version-command: |
+          grep -o "'.*'" ./linchpin/version.py | sed "s/'//g" | tail -n 1;
+        create-tag: false
     - name: running a shell script file
       run: |
         ls;
         pwd;
         echo "Checking the changed files";
-        dnf install -y git;
+        #dnf install -y git;
         git diff-tree --no-commit-id --name-only -r ${{ github.sha }};
