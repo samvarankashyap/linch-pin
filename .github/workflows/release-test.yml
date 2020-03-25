@@ -19,3 +19,6 @@ jobs:
       run: |
         ls;
         pwd;
+        echo "Checking the changed files";
+        dnf install -y git;
+        git diff-tree --no-commit-id --name-only -r ${{ github.sha }};
