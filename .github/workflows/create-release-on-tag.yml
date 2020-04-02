@@ -1,17 +1,18 @@
-name: "on creation of tags"
+name: "Create release on change of version file"
 on:
+  # Sequence of patterns matched against refs/tags
   push:
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-
+    branches:
+      - develop
+    paths:
+      - 'linchpin/version.py'
 jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@develop
+        uses: actions/checkout@v2
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -28,7 +29,7 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
